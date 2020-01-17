@@ -1,37 +1,16 @@
-from flask import Flask, send_file, render_template, request
-from PIL import Image, ImageFont, ImageDraw
-import io
+from flask import Flask, send_file, render_template, request, Response
+from placeholderimage import convert_hex_to_rgb, create_image, serve_image
+
 
 app = Flask('__name__')
-
-
-def convert_hex_to_rgb(hex):
-    return tuple(int(hex[i:i+2], 16) for i in (0, 2, 4))
-
-
-def create_image(width, height, color, text, text_color, font_size):
-    img = Image.new('RGB', (width, height), color=convert_hex_to_rgb(color))
-
-    draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype("fonts/sans-serif.ttf", font_size)
-    text_width, text_height = draw.textsize(text, font)
-
-    draw.text(
-        ((img.width - text_width) / 2, (height - text_height) / 2)
-        , text, (convert_hex_to_rgb(text_color)), font=font)
-    return img
-
-
-def serve_image(img):
-    img_io = io.BytesIO()
-    img.save(img_io, 'JPEG', quality=100)
-    img_io.seek(0)
-    return send_file(img_io, mimetype='image/jpeg')
 
 
 @app.route('/image/')
 def image_landing_page():
     img = create_image(400, 400, '0000FF', "Hello World", 'FAFAFA')
+
+    resp = Response(serve_image(img))
+    resp.headers['Cache-Control'] = 'public, max-age=31536000'
     return serve_image(img)
 
 
@@ -60,7 +39,7 @@ def create_image_with_width_height(width, height):
     if font_size is None:
         font_size = 64
 
-    img = create_image(width, height, background_color, image_text, text_color, font_size)
+    img = create_image(width, height, background_color, image_text, text_color)
     return serve_image(img)
 
 
