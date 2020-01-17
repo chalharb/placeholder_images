@@ -8,9 +8,6 @@ app = Flask('__name__')
 @app.route('/image/')
 def image_landing_page():
     img = create_image(400, 400, '0000FF', "Hello World", 'FAFAFA')
-
-    resp = Response(serve_image(img))
-    resp.headers['Cache-Control'] = 'public, max-age=31536000'
     return serve_image(img)
 
 
